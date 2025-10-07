@@ -1,0 +1,1606 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MindCare - Aplikasi Kesehatan Mental Remaja</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        body { font-family: 'Inter', sans-serif; }
+        .gradient-bg { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .card-shadow { box-shadow: 0 10px 25px rgba(0,0,0,0.1); }
+        .mood-emoji { font-size: 2rem; cursor: pointer; transition: transform 0.2s; }
+        .mood-emoji:hover { transform: scale(1.2); }
+        .mood-emoji.selected { transform: scale(1.3); filter: brightness(1.2); }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Navigation -->
+    <nav class="gradient-bg text-white p-4 sticky top-0 z-50">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold">🧠 MindCare</h1>
+            
+            <!-- Desktop Menu -->
+            <div class="hidden md:flex items-center space-x-4">
+                <button onclick="showSection('dashboard')" class="nav-btn px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition">Dashboard</button>
+                <button onclick="showSection('journal')" class="nav-btn px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition">Jurnal</button>
+                <button onclick="showSection('mood')" class="nav-btn px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition">Mood</button>
+                <button onclick="showSection('mental')" class="nav-btn px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition">Mental</button>
+                <button onclick="showSection('sleep')" class="nav-btn px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition">Tidur</button>
+                <button onclick="showSection('hospital')" class="nav-btn px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition">Rumah Sakit</button>
+                <button onclick="showSection('blog')" class="nav-btn px-4 py-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition">Blog</button>
+                
+                <!-- Fullscreen Toggle -->
+                <button onclick="toggleFullscreen()" id="fullscreen-btn" class="p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition" title="Toggle Fullscreen">
+                    <svg id="fullscreen-icon" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-1V4m0 0h-4m4 0l-5 5M4 16v4m0 0h4m-4 0l5-5m11 5l-5-5m5 5v-4m0 4h-4"></path>
+                    </svg>
+                    <svg id="exit-fullscreen-icon" class="w-5 h-5 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 9V4.5M9 9H4.5M9 9L3.5 3.5M15 9h4.5M15 9V4.5M15 9l5.5-5.5M9 15v4.5M9 15H4.5M9 15l-5.5 5.5M15 15h4.5M15 15v4.5m0 0l5.5 5.5"></path>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Mobile Hamburger Button -->
+            <button onclick="toggleMobileMenu()" class="md:hidden p-2 rounded-lg hover:bg-white hover:bg-opacity-20 transition">
+                <svg id="hamburger-icon" class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+                <svg id="close-icon" class="w-6 h-6 hidden" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+        
+        <!-- Mobile Menu -->
+        <div id="mobile-menu" class="md:hidden hidden mt-4 pb-4">
+            <div class="flex flex-col space-y-2">
+                <button onclick="showSection('dashboard'); closeMobileMenu()" class="nav-btn-mobile text-left px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition">📊 Dashboard</button>
+                <button onclick="showSection('journal'); closeMobileMenu()" class="nav-btn-mobile text-left px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition">📝 Jurnal</button>
+                <button onclick="showSection('mood'); closeMobileMenu()" class="nav-btn-mobile text-left px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition">😊 Mood</button>
+                <button onclick="showSection('mental'); closeMobileMenu()" class="nav-btn-mobile text-left px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition">🧠 Mental</button>
+                <button onclick="showSection('sleep'); closeMobileMenu()" class="nav-btn-mobile text-left px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition">😴 Tidur</button>
+                <button onclick="showSection('hospital'); closeMobileMenu()" class="nav-btn-mobile text-left px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition">🏥 Rumah Sakit</button>
+                <button onclick="showSection('blog'); closeMobileMenu()" class="nav-btn-mobile text-left px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition">📰 Blog</button>
+                
+                <!-- Mobile Fullscreen Toggle -->
+                <button onclick="toggleFullscreen(); closeMobileMenu()" class="nav-btn-mobile text-left px-4 py-3 rounded-lg hover:bg-white hover:bg-opacity-20 transition">
+                    <span id="mobile-fullscreen-text">🔳 Fullscreen</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Dashboard Section -->
+    <div id="dashboard" class="section container mx-auto p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8">Dashboard Kesehatan Mental</h2>
+        
+        <!-- Stats Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Skor Mental</p>
+                        <p class="text-2xl font-bold text-blue-600" id="mental-score-display">-</p>
+                    </div>
+                    <div class="text-3xl">🧠</div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Kualitas Tidur</p>
+                        <p class="text-2xl font-bold text-purple-600" id="sleep-score-display">-</p>
+                    </div>
+                    <div class="text-3xl">😴</div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Mood Hari Ini</p>
+                        <p class="text-2xl font-bold text-green-600" id="today-mood-display">-</p>
+                    </div>
+                    <div class="text-3xl">😊</div>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-gray-600 text-sm">Jurnal Entries</p>
+                        <p class="text-2xl font-bold text-orange-600" id="journal-count-display">0</p>
+                    </div>
+                    <div class="text-3xl">📝</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <h3 class="text-xl font-semibold mb-4">Trend Mood 7 Hari</h3>
+                <div class="relative h-64">
+                    <canvas id="moodChart"></canvas>
+                </div>
+            </div>
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <h3 class="text-xl font-semibold mb-4">Analisis Kesehatan</h3>
+                <div class="relative h-64">
+                    <canvas id="healthChart"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Journal Section -->
+    <div id="journal" class="section hidden container mx-auto p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8">Jurnal Harian</h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Add Journal Form -->
+            <div class="lg:col-span-1">
+                <div class="bg-white p-6 rounded-xl card-shadow">
+                    <h3 class="text-xl font-semibold mb-4">Tulis Jurnal Baru</h3>
+                    <form onsubmit="addJournal(event)">
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Tanggal</label>
+                            <input type="date" id="journal-date" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Judul</label>
+                            <input type="text" id="journal-title" placeholder="Judul jurnal..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required>
+                        </div>
+                        <div class="mb-4">
+                            <label class="block text-gray-700 text-sm font-medium mb-2">Isi Jurnal</label>
+                            <textarea id="journal-content" rows="6" placeholder="Ceritakan hari Anda..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent" required></textarea>
+                        </div>
+                        <button type="submit" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium">Simpan Jurnal</button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Journal List -->
+            <div class="lg:col-span-2">
+                <div class="bg-white p-6 rounded-xl card-shadow">
+                    <h3 class="text-xl font-semibold mb-4">Jurnal Saya</h3>
+                    <div id="journal-list" class="space-y-4">
+                        <p class="text-gray-500 text-center py-8">Belum ada jurnal. Mulai tulis jurnal pertama Anda!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mood Tracker Section -->
+    <div id="mood" class="section hidden container mx-auto p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8">Mood Tracker</h2>
+        
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <!-- Mood Input -->
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <h3 class="text-xl font-semibold mb-4">Bagaimana perasaan Anda hari ini?</h3>
+                <div class="grid grid-cols-5 gap-4 mb-6">
+                    <div class="text-center">
+                        <div class="mood-emoji" data-mood="1" onclick="selectMood(1)">😢</div>
+                        <p class="text-sm text-gray-600 mt-2">Sangat Buruk</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="mood-emoji" data-mood="2" onclick="selectMood(2)">😔</div>
+                        <p class="text-sm text-gray-600 mt-2">Buruk</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="mood-emoji" data-mood="3" onclick="selectMood(3)">😐</div>
+                        <p class="text-sm text-gray-600 mt-2">Biasa</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="mood-emoji" data-mood="4" onclick="selectMood(4)">😊</div>
+                        <p class="text-sm text-gray-600 mt-2">Baik</p>
+                    </div>
+                    <div class="text-center">
+                        <div class="mood-emoji" data-mood="5" onclick="selectMood(5)">😄</div>
+                        <p class="text-sm text-gray-600 mt-2">Sangat Baik</p>
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label class="block text-gray-700 text-sm font-medium mb-2">Catatan (opsional)</label>
+                    <textarea id="mood-note" rows="3" placeholder="Apa yang membuat Anda merasa seperti ini?" class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"></textarea>
+                </div>
+                <button onclick="saveMood()" class="w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition font-medium">Simpan Mood</button>
+            </div>
+
+            <!-- Mood History -->
+            <div class="bg-white p-6 rounded-xl card-shadow">
+                <h3 class="text-xl font-semibold mb-4">Riwayat Mood</h3>
+                <div id="mood-history" class="space-y-3 max-h-96 overflow-y-auto">
+                    <p class="text-gray-500 text-center py-8">Belum ada data mood. Mulai catat mood Anda!</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mental Health Assessment -->
+    <div id="mental" class="section hidden container mx-auto p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8">Penilaian Kesehatan Mental</h2>
+        
+        <div class="bg-white p-6 rounded-xl card-shadow max-w-4xl mx-auto">
+            <div id="mental-assessment">
+                <h3 class="text-xl font-semibold mb-6">Kuesioner GHQ-12 (General Health Questionnaire)</h3>
+                <p class="text-gray-600 mb-6">Kuesioner ini mengukur kesehatan mental umum dalam beberapa minggu terakhir. Jawab setiap pertanyaan dengan memilih opsi yang paling sesuai dengan kondisi Anda dibandingkan dengan keadaan normal.</p>
+                
+                <div id="mental-questions" class="space-y-6">
+                    <!-- Questions will be generated by JavaScript -->
+                </div>
+                
+                <button onclick="calculateMentalScore()" class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition font-medium mt-6">Hitung Skor</button>
+            </div>
+
+            <div id="mental-result" class="hidden">
+                <h3 class="text-xl font-semibold mb-4">Hasil Penilaian</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="text-center mb-4">
+                        <div class="text-4xl font-bold text-blue-600" id="mental-score">0</div>
+                        <p class="text-gray-600">dari 100</p>
+                    </div>
+                    <div id="mental-interpretation" class="text-center">
+                        <!-- Interpretation will be added by JavaScript -->
+                    </div>
+                    <button onclick="resetMentalAssessment()" class="w-full bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 transition font-medium mt-4">Tes Ulang</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Sleep Quality Assessment -->
+    <div id="sleep" class="section hidden container mx-auto p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8">Penilaian Kualitas Tidur</h2>
+        
+        <div class="bg-white p-6 rounded-xl card-shadow max-w-4xl mx-auto">
+            <div id="sleep-assessment">
+                <h3 class="text-xl font-semibold mb-6">Kuesioner Kualitas Tidur</h3>
+                <p class="text-gray-600 mb-6">Evaluasi kualitas tidur Anda dalam seminggu terakhir.</p>
+                
+                <div id="sleep-questions" class="space-y-6">
+                    <!-- Questions will be generated by JavaScript -->
+                </div>
+                
+                <button onclick="calculateSleepScore()" class="w-full bg-purple-600 text-white py-3 rounded-lg hover:bg-purple-700 transition font-medium mt-6">Hitung Skor</button>
+            </div>
+
+            <div id="sleep-result" class="hidden">
+                <h3 class="text-xl font-semibold mb-4">Hasil Penilaian Tidur</h3>
+                <div class="bg-gray-50 p-6 rounded-lg">
+                    <div class="text-center mb-4">
+                        <div class="text-4xl font-bold text-purple-600" id="sleep-score">0</div>
+                        <p class="text-gray-600">dari 100</p>
+                    </div>
+                    <div id="sleep-interpretation" class="text-center">
+                        <!-- Interpretation will be added by JavaScript -->
+                    </div>
+                    <button onclick="resetSleepAssessment()" class="w-full bg-gray-600 text-white py-2 rounded-lg hover:bg-gray-700 transition font-medium mt-4">Tes Ulang</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hospital Finder Section -->
+    <div id="hospital" class="section hidden container mx-auto p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8">Rumah Sakit Terdekat</h2>
+        
+        <div class="bg-white p-6 rounded-xl card-shadow mb-6">
+            <div class="flex flex-col md:flex-row gap-4 mb-6">
+                <div class="flex-1">
+                    <button onclick="getCurrentLocation()" class="w-full bg-blue-600 text-white py-3 px-4 rounded-lg hover:bg-blue-700 transition font-medium flex items-center justify-center space-x-2">
+                        <span>📍</span>
+                        <span>Gunakan Lokasi Saya</span>
+                    </button>
+                </div>
+                <div class="flex-1">
+                    <input type="text" id="location-input" placeholder="Atau masukkan nama kota..." class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                </div>
+                <div>
+                    <button onclick="searchHospitals()" class="w-full md:w-auto bg-green-600 text-white py-3 px-6 rounded-lg hover:bg-green-700 transition font-medium">
+                        Cari
+                    </button>
+                </div>
+            </div>
+            
+            <!-- Filter Options -->
+            <div class="flex flex-wrap gap-4 mb-4">
+                <select id="hospital-type" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="all">Semua Jenis</option>
+                    <option value="umum">Rumah Sakit Umum</option>
+                    <option value="jiwa">Rumah Sakit Jiwa</option>
+                    <option value="puskesmas">Puskesmas</option>
+                    <option value="klinik">Klinik</option>
+                </select>
+                
+                <select id="hospital-distance" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                    <option value="5">Dalam 5 km</option>
+                    <option value="10">Dalam 10 km</option>
+                    <option value="20">Dalam 20 km</option>
+                    <option value="50">Dalam 50 km</option>
+                </select>
+            </div>
+            
+            <!-- Location Status -->
+            <div id="location-status" class="hidden mb-4 p-3 rounded-lg">
+                <!-- Status will be updated by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Hospital Results -->
+        <div class="bg-white p-6 rounded-xl card-shadow">
+            <h3 class="text-xl font-semibold mb-4">Hasil Pencarian</h3>
+            <div id="hospital-results" class="space-y-4">
+                <div class="text-center py-8 text-gray-500">
+                    <div class="text-4xl mb-4">🏥</div>
+                    <p>Klik "Gunakan Lokasi Saya" atau masukkan nama kota untuk mencari rumah sakit terdekat</p>
+                </div>
+            </div>
+            
+            <!-- Loading State -->
+            <div id="hospital-loading" class="hidden text-center py-8">
+                <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
+                <p class="mt-2 text-gray-600">Mencari rumah sakit terdekat...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Blog Section -->
+    <div id="blog" class="section hidden container mx-auto p-6">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8">Blog Kesehatan Mental</h2>
+        
+        <div class="bg-white p-6 rounded-xl card-shadow">
+            <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6">
+                <h3 class="text-xl font-semibold mb-4 md:mb-0">Artikel & Informasi Terbaru</h3>
+                <div class="flex items-center space-x-4">
+                    <select id="blog-category" onchange="filterBlogPosts()" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                        <option value="all">Semua Kategori</option>
+                        <option value="tips">Tips & Saran</option>
+                        <option value="research">Penelitian</option>
+                        <option value="lifestyle">Gaya Hidup</option>
+                        <option value="therapy">Terapi</option>
+                    </select>
+                </div>
+            </div>
+            
+            <!-- Blog Posts Grid -->
+            <div id="blog-posts" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                <!-- Posts will be generated by JavaScript -->
+            </div>
+            
+            <!-- Pagination -->
+            <div id="blog-pagination" class="flex justify-center items-center space-x-2">
+                <!-- Pagination will be generated by JavaScript -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Data storage
+        let appData = {
+            journals: JSON.parse(localStorage.getItem('mindcare_journals') || '[]'),
+            moods: JSON.parse(localStorage.getItem('mindcare_moods') || '[]'),
+            mentalScore: localStorage.getItem('mindcare_mental_score') || null,
+            sleepScore: localStorage.getItem('mindcare_sleep_score') || null
+        };
+
+        let selectedMood = null;
+        let moodChart = null;
+        let healthChart = null;
+
+        // GHQ-12 Mental health questions
+        const mentalQuestions = [
+            "Apakah Anda dapat berkonsentrasi pada apa yang Anda lakukan?",
+            "Apakah Anda kehilangan banyak waktu tidur karena khawatir?",
+            "Apakah Anda merasa berperan berguna dalam berbagai hal?",
+            "Apakah Anda merasa mampu membuat keputusan tentang berbagai hal?",
+            "Apakah Anda merasa terus-menerus berada dalam tekanan?",
+            "Apakah Anda merasa tidak dapat mengatasi kesulitan-kesulitan Anda?",
+            "Apakah Anda dapat menikmati kegiatan-kegiatan normal sehari-hari?",
+            "Apakah Anda mampu menghadapi masalah-masalah Anda?",
+            "Apakah Anda merasa tidak bahagia dan tertekan?",
+            "Apakah Anda kehilangan rasa percaya diri?",
+            "Apakah Anda menganggap diri Anda tidak berharga?",
+            "Apakah Anda merasa cukup bahagia dengan mempertimbangkan segala sesuatunya?"
+        ];
+
+        // Sleep quality questions
+        const sleepQuestions = [
+            "Berapa lama biasanya Anda butuh untuk tertidur?",
+            "Seberapa sering Anda terbangun di tengah malam?",
+            "Seberapa sering Anda bangun terlalu pagi dan tidak bisa tidur lagi?",
+            "Seberapa puas Anda dengan kualitas tidur Anda?",
+            "Seberapa sering masalah tidur mengganggu aktivitas harian Anda?",
+            "Seberapa sering orang lain menyadari bahwa Anda kurang tidur?",
+            "Seberapa khawatir Anda tentang masalah tidur Anda?",
+            "Berapa jam Anda tidur dalam semalam rata-rata?"
+        ];
+
+        // Blog posts data
+        const blogPosts = [
+            {
+                id: 1,
+                title: "5 Cara Mengatasi Stres di Masa Remaja",
+                excerpt: "Pelajari teknik-teknik sederhana untuk mengelola stres yang sering dialami remaja dalam kehidupan sehari-hari.",
+                category: "tips",
+                date: "2024-01-15",
+                readTime: "5 menit",
+                image: "🧘‍♀️"
+            },
+            {
+                id: 2,
+                title: "Pentingnya Tidur yang Cukup untuk Kesehatan Mental",
+                excerpt: "Bagaimana kualitas tidur mempengaruhi mood, konsentrasi, dan kesehatan mental secara keseluruhan.",
+                category: "research",
+                date: "2024-01-12",
+                readTime: "7 menit",
+                image: "😴"
+            },
+            {
+                id: 3,
+                title: "Mengenal Tanda-tanda Depresi pada Remaja",
+                excerpt: "Identifikasi gejala awal depresi dan kapan harus mencari bantuan profesional.",
+                category: "tips",
+                date: "2024-01-10",
+                readTime: "6 menit",
+                image: "💭"
+            },
+            {
+                id: 4,
+                title: "Olahraga sebagai Terapi Alami untuk Kecemasan",
+                excerpt: "Manfaat aktivitas fisik dalam mengurangi tingkat kecemasan dan meningkatkan mood.",
+                category: "lifestyle",
+                date: "2024-01-08",
+                readTime: "4 menit",
+                image: "🏃‍♀️"
+            },
+            {
+                id: 5,
+                title: "Teknik Mindfulness untuk Remaja Pemula",
+                excerpt: "Panduan praktis memulai latihan mindfulness untuk meningkatkan kesadaran diri.",
+                category: "therapy",
+                date: "2024-01-05",
+                readTime: "8 menit",
+                image: "🧠"
+            },
+            {
+                id: 6,
+                title: "Dampak Media Sosial terhadap Kesehatan Mental",
+                excerpt: "Bagaimana penggunaan media sosial dapat mempengaruhi self-esteem dan kesehatan mental remaja.",
+                category: "research",
+                date: "2024-01-03",
+                readTime: "6 menit",
+                image: "📱"
+            },
+            {
+                id: 7,
+                title: "Membangun Kepercayaan Diri di Usia Remaja",
+                excerpt: "Strategi praktis untuk meningkatkan rasa percaya diri dan mengatasi insecurities.",
+                category: "tips",
+                date: "2024-01-01",
+                readTime: "5 menit",
+                image: "💪"
+            },
+            {
+                id: 8,
+                title: "Peran Keluarga dalam Mendukung Kesehatan Mental",
+                excerpt: "Bagaimana dukungan keluarga dapat membantu remaja mengatasi masalah mental health.",
+                category: "lifestyle",
+                date: "2023-12-28",
+                readTime: "7 menit",
+                image: "👨‍👩‍👧‍👦"
+            },
+            {
+                id: 9,
+                title: "Terapi Kognitif Perilaku untuk Remaja",
+                excerpt: "Pengenalan CBT dan bagaimana terapi ini dapat membantu mengatasi masalah emosional.",
+                category: "therapy",
+                date: "2023-12-25",
+                readTime: "9 menit",
+                image: "🗣️"
+            },
+            {
+                id: 10,
+                title: "Nutrisi dan Kesehatan Mental: Apa Hubungannya?",
+                excerpt: "Makanan yang dapat mempengaruhi mood dan fungsi otak pada remaja.",
+                category: "lifestyle",
+                date: "2023-12-22",
+                readTime: "6 menit",
+                image: "🥗"
+            },
+            {
+                id: 11,
+                title: "Mengatasi Bullying dan Dampaknya pada Mental Health",
+                excerpt: "Cara menghadapi bullying dan memulihkan diri dari trauma yang ditimbulkannya.",
+                category: "tips",
+                date: "2023-12-20",
+                readTime: "8 menit",
+                image: "🛡️"
+            },
+            {
+                id: 12,
+                title: "Pentingnya Jurnal untuk Kesehatan Mental",
+                excerpt: "Manfaat menulis jurnal sebagai outlet emosi dan alat refleksi diri.",
+                category: "therapy",
+                date: "2023-12-18",
+                readTime: "4 menit",
+                image: "📝"
+            },
+            {
+                id: 13,
+                title: "Mengelola Ekspektasi dan Perfeksionisme",
+                excerpt: "Bagaimana mengatasi tekanan untuk selalu sempurna dan menerima ketidaksempurnaan.",
+                category: "tips",
+                date: "2023-12-15",
+                readTime: "7 menit",
+                image: "🎯"
+            },
+            {
+                id: 14,
+                title: "Penelitian Terbaru: Gen dan Kesehatan Mental",
+                excerpt: "Temuan ilmiah tentang faktor genetik dalam gangguan kesehatan mental.",
+                category: "research",
+                date: "2023-12-12",
+                readTime: "10 menit",
+                image: "🧬"
+            },
+            {
+                id: 15,
+                title: "Seni dan Kreativitas sebagai Terapi",
+                excerpt: "Bagaimana aktivitas kreatif dapat menjadi outlet yang sehat untuk emosi.",
+                category: "therapy",
+                date: "2023-12-10",
+                readTime: "5 menit",
+                image: "🎨"
+            },
+            {
+                id: 16,
+                title: "Memahami Gangguan Kecemasan pada Remaja",
+                excerpt: "Jenis-jenis gangguan kecemasan dan cara mengatasinya dengan tepat.",
+                category: "research",
+                date: "2023-12-08",
+                readTime: "8 menit",
+                image: "😰"
+            },
+            {
+                id: 17,
+                title: "Teknik Pernapasan untuk Menenangkan Pikiran",
+                excerpt: "Latihan pernapasan sederhana yang dapat dilakukan kapan saja untuk mengurangi stres.",
+                category: "therapy",
+                date: "2023-12-05",
+                readTime: "3 menit",
+                image: "🌬️"
+            },
+            {
+                id: 18,
+                title: "Membangun Rutinitas Sehat untuk Mental Health",
+                excerpt: "Pentingnya rutinitas harian yang konsisten untuk menjaga stabilitas emosi.",
+                category: "lifestyle",
+                date: "2023-12-03",
+                readTime: "6 menit",
+                image: "⏰"
+            },
+            {
+                id: 19,
+                title: "Kapan Harus Mencari Bantuan Profesional?",
+                excerpt: "Tanda-tanda yang menunjukkan perlunya konsultasi dengan psikolog atau psikiater.",
+                category: "tips",
+                date: "2023-12-01",
+                readTime: "7 menit",
+                image: "👩‍⚕️"
+            },
+            {
+                id: 20,
+                title: "Peer Support: Kekuatan Dukungan Teman Sebaya",
+                excerpt: "Bagaimana dukungan dari teman sebaya dapat membantu proses pemulihan mental health.",
+                category: "lifestyle",
+                date: "2023-11-28",
+                readTime: "5 menit",
+                image: "🤝"
+            }
+        ];
+
+        // Blog pagination variables
+        let currentPage = 1;
+        let postsPerPage = 5;
+        let filteredPosts = [...blogPosts];
+
+        // Hospital data and location variables
+        let userLocation = null;
+        let hospitalData = [];
+
+        // Initialize app
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set today's date for journal
+            document.getElementById('journal-date').valueAsDate = new Date();
+            
+            // Generate assessment questions
+            generateMentalQuestions();
+            generateSleepQuestions();
+            
+            // Load saved data
+            loadJournals();
+            loadMoods();
+            updateDashboard();
+            
+            // Initialize blog
+            loadBlogPosts();
+            
+            // Show dashboard by default
+            showSection('dashboard');
+        });
+
+        // Navigation
+        function showSection(sectionName) {
+            // Hide all sections
+            document.querySelectorAll('.section').forEach(section => {
+                section.classList.add('hidden');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionName).classList.remove('hidden');
+            
+            // Update nav buttons (desktop)
+            document.querySelectorAll('.nav-btn').forEach(btn => {
+                btn.classList.remove('bg-white', 'bg-opacity-20');
+            });
+            
+            // Update nav buttons (mobile)
+            document.querySelectorAll('.nav-btn-mobile').forEach(btn => {
+                btn.classList.remove('bg-white', 'bg-opacity-20');
+            });
+            
+            // Highlight active button
+            if (event && event.target) {
+                event.target.classList.add('bg-white', 'bg-opacity-20');
+            }
+
+            // Initialize charts when dashboard is shown
+            if (sectionName === 'dashboard') {
+                setTimeout(() => {
+                    initCharts();
+                }, 100);
+            }
+        }
+
+        // Mobile menu functions
+        function toggleMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const hamburgerIcon = document.getElementById('hamburger-icon');
+            const closeIcon = document.getElementById('close-icon');
+            
+            if (mobileMenu.classList.contains('hidden')) {
+                mobileMenu.classList.remove('hidden');
+                hamburgerIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+            } else {
+                mobileMenu.classList.add('hidden');
+                hamburgerIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+            }
+        }
+
+        function closeMobileMenu() {
+            const mobileMenu = document.getElementById('mobile-menu');
+            const hamburgerIcon = document.getElementById('hamburger-icon');
+            const closeIcon = document.getElementById('close-icon');
+            
+            mobileMenu.classList.add('hidden');
+            hamburgerIcon.classList.remove('hidden');
+            closeIcon.classList.add('hidden');
+        }
+
+        // Blog functions
+        function loadBlogPosts() {
+            const startIndex = (currentPage - 1) * postsPerPage;
+            const endIndex = startIndex + postsPerPage;
+            const postsToShow = filteredPosts.slice(startIndex, endIndex);
+            
+            const blogContainer = document.getElementById('blog-posts');
+            
+            if (postsToShow.length === 0) {
+                blogContainer.innerHTML = '<div class="col-span-full text-center py-8 text-gray-500">Tidak ada artikel yang ditemukan.</div>';
+                return;
+            }
+            
+            blogContainer.innerHTML = postsToShow.map(post => `
+                <div class="bg-gray-50 rounded-lg p-6 hover:shadow-md transition cursor-pointer" onclick="openBlogPost(${post.id})">
+                    <div class="text-4xl mb-4 text-center">${post.image}</div>
+                    <div class="mb-2">
+                        <span class="inline-block px-2 py-1 text-xs font-medium rounded-full ${getCategoryColor(post.category)}">${getCategoryName(post.category)}</span>
+                    </div>
+                    <h4 class="font-semibold text-lg mb-2 line-clamp-2">${post.title}</h4>
+                    <p class="text-gray-600 text-sm mb-4 line-clamp-3">${post.excerpt}</p>
+                    <div class="flex justify-between items-center text-xs text-gray-500">
+                        <span>${new Date(post.date).toLocaleDateString('id-ID')}</span>
+                        <span>⏱️ ${post.readTime}</span>
+                    </div>
+                </div>
+            `).join('');
+            
+            generatePagination();
+        }
+
+        function filterBlogPosts() {
+            const category = document.getElementById('blog-category').value;
+            
+            if (category === 'all') {
+                filteredPosts = [...blogPosts];
+            } else {
+                filteredPosts = blogPosts.filter(post => post.category === category);
+            }
+            
+            currentPage = 1;
+            loadBlogPosts();
+        }
+
+        function generatePagination() {
+            const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+            const paginationContainer = document.getElementById('blog-pagination');
+            
+            if (totalPages <= 1) {
+                paginationContainer.innerHTML = '';
+                return;
+            }
+            
+            let paginationHTML = '';
+            
+            // Previous button
+            if (currentPage > 1) {
+                paginationHTML += `<button onclick="changePage(${currentPage - 1})" class="px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition">‹</button>`;
+            }
+            
+            // Page numbers
+            for (let i = 1; i <= totalPages; i++) {
+                if (i === currentPage) {
+                    paginationHTML += `<button class="px-3 py-2 rounded-lg bg-blue-600 text-white">${i}</button>`;
+                } else {
+                    paginationHTML += `<button onclick="changePage(${i})" class="px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition">${i}</button>`;
+                }
+            }
+            
+            // Next button
+            if (currentPage < totalPages) {
+                paginationHTML += `<button onclick="changePage(${currentPage + 1})" class="px-3 py-2 rounded-lg bg-gray-200 hover:bg-gray-300 transition">›</button>`;
+            }
+            
+            paginationContainer.innerHTML = paginationHTML;
+        }
+
+        function changePage(page) {
+            currentPage = page;
+            loadBlogPosts();
+        }
+
+        function getCategoryColor(category) {
+            const colors = {
+                'tips': 'bg-blue-100 text-blue-800',
+                'research': 'bg-green-100 text-green-800',
+                'lifestyle': 'bg-purple-100 text-purple-800',
+                'therapy': 'bg-orange-100 text-orange-800'
+            };
+            return colors[category] || 'bg-gray-100 text-gray-800';
+        }
+
+        function getCategoryName(category) {
+            const names = {
+                'tips': 'Tips & Saran',
+                'research': 'Penelitian',
+                'lifestyle': 'Gaya Hidup',
+                'therapy': 'Terapi'
+            };
+            return names[category] || category;
+        }
+
+        function openBlogPost(postId) {
+            const post = blogPosts.find(p => p.id === postId);
+            if (post) {
+                alert(`Membuka artikel: "${post.title}"\n\n${post.excerpt}\n\nFitur baca artikel lengkap akan segera hadir!`);
+            }
+        }
+
+        // Journal functions
+        function addJournal(event) {
+            event.preventDefault();
+            
+            const date = document.getElementById('journal-date').value;
+            const title = document.getElementById('journal-title').value;
+            const content = document.getElementById('journal-content').value;
+            
+            const journal = {
+                id: Date.now(),
+                date: date,
+                title: title,
+                content: content,
+                timestamp: new Date().toISOString()
+            };
+            
+            appData.journals.unshift(journal);
+            localStorage.setItem('mindcare_journals', JSON.stringify(appData.journals));
+            
+            // Reset form
+            document.getElementById('journal-title').value = '';
+            document.getElementById('journal-content').value = '';
+            
+            loadJournals();
+            updateDashboard();
+            
+            alert('Jurnal berhasil disimpan!');
+        }
+
+        function loadJournals() {
+            const journalList = document.getElementById('journal-list');
+            
+            if (appData.journals.length === 0) {
+                journalList.innerHTML = '<p class="text-gray-500 text-center py-8">Belum ada jurnal. Mulai tulis jurnal pertama Anda!</p>';
+                return;
+            }
+            
+            journalList.innerHTML = appData.journals.map(journal => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                    <div class="flex justify-between items-start mb-2">
+                        <h4 class="font-semibold text-lg">${journal.title}</h4>
+                        <span class="text-sm text-gray-500">${new Date(journal.date).toLocaleDateString('id-ID')}</span>
+                    </div>
+                    <p class="text-gray-700 line-clamp-3">${journal.content}</p>
+                    <button onclick="deleteJournal(${journal.id})" class="text-red-500 text-sm mt-2 hover:text-red-700">Hapus</button>
+                </div>
+            `).join('');
+        }
+
+        function deleteJournal(id) {
+            if (confirm('Yakin ingin menghapus jurnal ini?')) {
+                appData.journals = appData.journals.filter(journal => journal.id !== id);
+                localStorage.setItem('mindcare_journals', JSON.stringify(appData.journals));
+                loadJournals();
+                updateDashboard();
+            }
+        }
+
+        // Mood functions
+        function selectMood(mood) {
+            selectedMood = mood;
+            
+            // Update UI
+            document.querySelectorAll('.mood-emoji').forEach(emoji => {
+                emoji.classList.remove('selected');
+            });
+            document.querySelector(`[data-mood="${mood}"]`).classList.add('selected');
+        }
+
+        function saveMood() {
+            if (!selectedMood) {
+                alert('Pilih mood Anda terlebih dahulu!');
+                return;
+            }
+            
+            const note = document.getElementById('mood-note').value;
+            const today = new Date().toISOString().split('T')[0];
+            
+            // Remove existing mood for today
+            appData.moods = appData.moods.filter(mood => mood.date !== today);
+            
+            const moodData = {
+                date: today,
+                mood: selectedMood,
+                note: note,
+                timestamp: new Date().toISOString()
+            };
+            
+            appData.moods.unshift(moodData);
+            localStorage.setItem('mindcare_moods', JSON.stringify(appData.moods));
+            
+            // Reset form
+            selectedMood = null;
+            document.getElementById('mood-note').value = '';
+            document.querySelectorAll('.mood-emoji').forEach(emoji => {
+                emoji.classList.remove('selected');
+            });
+            
+            loadMoods();
+            updateDashboard();
+            
+            alert('Mood berhasil disimpan!');
+        }
+
+        function loadMoods() {
+            const moodHistory = document.getElementById('mood-history');
+            
+            if (appData.moods.length === 0) {
+                moodHistory.innerHTML = '<p class="text-gray-500 text-center py-8">Belum ada data mood. Mulai catat mood Anda!</p>';
+                return;
+            }
+            
+            const moodEmojis = ['', '😢', '😔', '😐', '😊', '😄'];
+            const moodLabels = ['', 'Sangat Buruk', 'Buruk', 'Biasa', 'Baik', 'Sangat Baik'];
+            
+            moodHistory.innerHTML = appData.moods.map(mood => `
+                <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                    <div class="flex items-center space-x-3">
+                        <span class="text-2xl">${moodEmojis[mood.mood]}</span>
+                        <div>
+                            <p class="font-medium">${moodLabels[mood.mood]}</p>
+                            <p class="text-sm text-gray-600">${new Date(mood.date).toLocaleDateString('id-ID')}</p>
+                        </div>
+                    </div>
+                    ${mood.note ? `<p class="text-sm text-gray-600 max-w-xs">${mood.note}</p>` : ''}
+                </div>
+            `).join('');
+        }
+
+        // Mental health assessment - GHQ-12
+        function generateMentalQuestions() {
+            const container = document.getElementById('mental-questions');
+            
+            // GHQ-12 specific options for each question type
+            const getOptionsForQuestion = (index) => {
+                // Questions with positive framing (0,2,3,6,7,11) - higher score = better
+                if ([0,2,3,6,7,11].includes(index)) {
+                    return [
+                        { value: 3, text: "Lebih dari biasanya" },
+                        { value: 2, text: "Sama seperti biasanya" },
+                        { value: 1, text: "Kurang dari biasanya" },
+                        { value: 0, text: "Jauh kurang dari biasanya" }
+                    ];
+                }
+                // Questions with negative framing (1,4,5,8,9,10) - higher score = worse
+                else {
+                    return [
+                        { value: 0, text: "Tidak sama sekali" },
+                        { value: 1, text: "Tidak lebih dari biasanya" },
+                        { value: 2, text: "Agak lebih dari biasanya" },
+                        { value: 3, text: "Jauh lebih dari biasanya" }
+                    ];
+                }
+            };
+            
+            container.innerHTML = mentalQuestions.map((question, index) => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <p class="font-medium mb-3">${index + 1}. ${question}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-2">
+                        ${getOptionsForQuestion(index).map(option => `
+                            <label class="flex items-center space-x-2 cursor-pointer p-2 rounded hover:bg-gray-50">
+                                <input type="radio" name="mental_q${index}" value="${option.value}" class="text-blue-600">
+                                <span class="text-sm">${option.text}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function calculateMentalScore() {
+            let totalScore = 0;
+            let answeredQuestions = 0;
+            
+            for (let i = 0; i < mentalQuestions.length; i++) {
+                const selected = document.querySelector(`input[name="mental_q${i}"]:checked`);
+                if (selected) {
+                    totalScore += parseInt(selected.value);
+                    answeredQuestions++;
+                }
+            }
+            
+            if (answeredQuestions < mentalQuestions.length) {
+                alert('Mohon jawab semua pertanyaan!');
+                return;
+            }
+            
+            // GHQ-12 scoring: Total possible score is 36 (12 questions × 3 max points)
+            // Convert to percentage for display
+            const percentageScore = Math.round((totalScore / 36) * 100);
+            
+            appData.mentalScore = percentageScore;
+            localStorage.setItem('mindcare_mental_score', percentageScore);
+            
+            document.getElementById('mental-score').textContent = percentageScore;
+            
+            let interpretation = '';
+            let color = '';
+            let ghqCategory = '';
+            
+            // GHQ-12 interpretation based on raw score
+            if (totalScore <= 11) {
+                interpretation = 'Kesehatan mental Anda dalam kondisi baik. Tidak ada indikasi masalah kesehatan mental yang signifikan.';
+                color = 'text-green-600';
+                ghqCategory = 'Normal';
+            } else if (totalScore <= 15) {
+                interpretation = 'Ada beberapa tanda ringan yang perlu diperhatikan. Pertimbangkan untuk menjaga pola hidup sehat dan mengelola stres dengan baik.';
+                color = 'text-yellow-600';
+                ghqCategory = 'Ringan';
+            } else if (totalScore <= 20) {
+                interpretation = 'Terdapat indikasi masalah kesehatan mental tingkat sedang. Disarankan untuk berbicara dengan konselor atau psikolog.';
+                color = 'text-orange-600';
+                ghqCategory = 'Sedang';
+            } else {
+                interpretation = 'Hasil menunjukkan kemungkinan masalah kesehatan mental yang perlu perhatian serius. Sangat disarankan untuk berkonsultasi dengan profesional kesehatan mental.';
+                color = 'text-red-600';
+                ghqCategory = 'Tinggi';
+            }
+            
+            document.getElementById('mental-interpretation').innerHTML = `
+                <div class="text-center mb-4">
+                    <p class="text-lg font-semibold mb-2">Kategori: <span class="${color}">${ghqCategory}</span></p>
+                    <p class="text-sm text-gray-600 mb-2">Skor GHQ-12: ${totalScore}/36</p>
+                </div>
+                <p class="${color} font-medium">${interpretation}</p>
+                <div class="mt-4 p-4 bg-blue-50 rounded-lg">
+                    <p class="text-sm text-blue-800">
+                        <strong>Catatan:</strong> Hasil ini hanya untuk skrining awal dan bukan diagnosis medis. 
+                        Untuk evaluasi yang lebih komprehensif, konsultasikan dengan profesional kesehatan mental.
+                    </p>
+                </div>
+            `;
+            
+            document.getElementById('mental-assessment').classList.add('hidden');
+            document.getElementById('mental-result').classList.remove('hidden');
+            
+            updateDashboard();
+        }
+
+        function resetMentalAssessment() {
+            document.getElementById('mental-assessment').classList.remove('hidden');
+            document.getElementById('mental-result').classList.add('hidden');
+            
+            // Reset all radio buttons
+            document.querySelectorAll('#mental-questions input[type="radio"]').forEach(input => {
+                input.checked = false;
+            });
+        }
+
+        // Sleep quality assessment
+        function generateSleepQuestions() {
+            const container = document.getElementById('sleep-questions');
+            const options = [
+                ['< 15 menit', '15-30 menit', '31-60 menit', '> 60 menit', '> 2 jam'],
+                ['Tidak pernah', 'Kurang dari 1x/minggu', '1-2x/minggu', '3-4x/minggu', '5-7x/minggu'],
+                ['Tidak pernah', 'Kurang dari 1x/minggu', '1-2x/minggu', '3-4x/minggu', '5-7x/minggu'],
+                ['Sangat puas', 'Cukup puas', 'Biasa saja', 'Kurang puas', 'Sangat tidak puas'],
+                ['Tidak pernah', 'Kurang dari 1x/minggu', '1-2x/minggu', '3-4x/minggu', '5-7x/minggu'],
+                ['Tidak pernah', 'Kurang dari 1x/minggu', '1-2x/minggu', '3-4x/minggu', '5-7x/minggu'],
+                ['Tidak khawatir', 'Sedikit khawatir', 'Cukup khawatir', 'Sangat khawatir', 'Ekstrem khawatir'],
+                ['> 8 jam', '7-8 jam', '6-7 jam', '5-6 jam', '< 5 jam']
+            ];
+            
+            container.innerHTML = sleepQuestions.map((question, index) => `
+                <div class="border border-gray-200 rounded-lg p-4">
+                    <p class="font-medium mb-3">${index + 1}. ${question}</p>
+                    <div class="grid grid-cols-1 md:grid-cols-5 gap-2">
+                        ${options[index].map((option, optIndex) => `
+                            <label class="flex items-center space-x-2 cursor-pointer">
+                                <input type="radio" name="sleep_q${index}" value="${optIndex + 1}" class="text-purple-600">
+                                <span class="text-sm">${option}</span>
+                            </label>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function calculateSleepScore() {
+            let totalScore = 0;
+            let answeredQuestions = 0;
+            
+            for (let i = 0; i < sleepQuestions.length; i++) {
+                const selected = document.querySelector(`input[name="sleep_q${i}"]:checked`);
+                if (selected) {
+                    let score = parseInt(selected.value);
+                    // Reverse scoring for positive questions (3, 7)
+                    if ([3, 7].includes(i)) {
+                        score = 6 - score;
+                    }
+                    totalScore += score;
+                    answeredQuestions++;
+                }
+            }
+            
+            if (answeredQuestions < sleepQuestions.length) {
+                alert('Mohon jawab semua pertanyaan!');
+                return;
+            }
+            
+            const finalScore = Math.round((totalScore / (sleepQuestions.length * 5)) * 100);
+            
+            appData.sleepScore = finalScore;
+            localStorage.setItem('mindcare_sleep_score', finalScore);
+            
+            document.getElementById('sleep-score').textContent = finalScore;
+            
+            let interpretation = '';
+            let color = '';
+            
+            if (finalScore >= 80) {
+                interpretation = 'Kualitas tidur Anda sangat baik! Pertahankan rutinitas tidur yang sehat.';
+                color = 'text-green-600';
+            } else if (finalScore >= 60) {
+                interpretation = 'Kualitas tidur Anda cukup baik, namun masih bisa ditingkatkan.';
+                color = 'text-yellow-600';
+            } else if (finalScore >= 40) {
+                interpretation = 'Ada masalah dengan kualitas tidur Anda. Pertimbangkan untuk memperbaiki rutinitas tidur.';
+                color = 'text-orange-600';
+            } else {
+                interpretation = 'Kualitas tidur Anda buruk. Disarankan berkonsultasi dengan dokter.';
+                color = 'text-red-600';
+            }
+            
+            document.getElementById('sleep-interpretation').innerHTML = `<p class="${color} font-medium">${interpretation}</p>`;
+            
+            document.getElementById('sleep-assessment').classList.add('hidden');
+            document.getElementById('sleep-result').classList.remove('hidden');
+            
+            updateDashboard();
+        }
+
+        function resetSleepAssessment() {
+            document.getElementById('sleep-assessment').classList.remove('hidden');
+            document.getElementById('sleep-result').classList.add('hidden');
+            
+            // Reset all radio buttons
+            document.querySelectorAll('#sleep-questions input[type="radio"]').forEach(input => {
+                input.checked = false;
+            });
+        }
+
+        // Dashboard functions
+        function updateDashboard() {
+            // Update stats
+            document.getElementById('mental-score-display').textContent = appData.mentalScore || '-';
+            document.getElementById('sleep-score-display').textContent = appData.sleepScore || '-';
+            document.getElementById('journal-count-display').textContent = appData.journals.length;
+            
+            // Today's mood
+            const today = new Date().toISOString().split('T')[0];
+            const todayMood = appData.moods.find(mood => mood.date === today);
+            const moodEmojis = ['', '😢', '😔', '😐', '😊', '😄'];
+            document.getElementById('today-mood-display').textContent = todayMood ? moodEmojis[todayMood.mood] : '-';
+        }
+
+        function initCharts() {
+            // Destroy existing charts
+            if (moodChart) moodChart.destroy();
+            if (healthChart) healthChart.destroy();
+            
+            // Mood trend chart
+            const moodCtx = document.getElementById('moodChart').getContext('2d');
+            const last7Days = [];
+            const moodData = [];
+            
+            for (let i = 6; i >= 0; i--) {
+                const date = new Date();
+                date.setDate(date.getDate() - i);
+                const dateStr = date.toISOString().split('T')[0];
+                last7Days.push(date.toLocaleDateString('id-ID', { weekday: 'short' }));
+                
+                const dayMood = appData.moods.find(mood => mood.date === dateStr);
+                moodData.push(dayMood ? dayMood.mood : 0);
+            }
+            
+            moodChart = new Chart(moodCtx, {
+                type: 'line',
+                data: {
+                    labels: last7Days,
+                    datasets: [{
+                        label: 'Mood',
+                        data: moodData,
+                        borderColor: '#10B981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        tension: 0.4,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    interaction: {
+                        intersect: false,
+                        mode: 'index'
+                    },
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 5,
+                            ticks: {
+                                stepSize: 1,
+                                callback: function(value) {
+                                    const labels = ['', 'Sangat Buruk', 'Buruk', 'Biasa', 'Baik', 'Sangat Baik'];
+                                    return labels[value] || '';
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Health analysis chart
+            const healthCtx = document.getElementById('healthChart').getContext('2d');
+            healthChart = new Chart(healthCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Kesehatan Mental', 'Kualitas Tidur', 'Mood Rata-rata'],
+                    datasets: [{
+                        data: [
+                            appData.mentalScore || 0,
+                            appData.sleepScore || 0,
+                            appData.moods.length > 0 ? (appData.moods.reduce((sum, mood) => sum + mood.mood, 0) / appData.moods.length) * 20 : 0
+                        ],
+                        backgroundColor: ['#3B82F6', '#8B5CF6', '#10B981'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    cutout: '50%',
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: {
+                                padding: 20,
+                                usePointStyle: true
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Hospital finder functions
+        function getCurrentLocation() {
+            if (!navigator.geolocation) {
+                showLocationStatus('Geolocation tidak didukung oleh browser ini.', 'error');
+                return;
+            }
+
+            showLocationStatus('Mendapatkan lokasi Anda...', 'loading');
+            
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    userLocation = {
+                        lat: position.coords.latitude,
+                        lng: position.coords.longitude
+                    };
+                    showLocationStatus(`Lokasi ditemukan: ${userLocation.lat.toFixed(4)}, ${userLocation.lng.toFixed(4)}`, 'success');
+                    searchNearbyHospitals();
+                },
+                function(error) {
+                    let errorMessage = 'Gagal mendapatkan lokasi. ';
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMessage += 'Izin lokasi ditolak.';
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMessage += 'Informasi lokasi tidak tersedia.';
+                            break;
+                        case error.TIMEOUT:
+                            errorMessage += 'Permintaan lokasi timeout.';
+                            break;
+                        default:
+                            errorMessage += 'Terjadi kesalahan yang tidak diketahui.';
+                            break;
+                    }
+                    showLocationStatus(errorMessage, 'error');
+                }
+            );
+        }
+
+        function showLocationStatus(message, type) {
+            const statusDiv = document.getElementById('location-status');
+            statusDiv.classList.remove('hidden', 'bg-blue-100', 'text-blue-800', 'bg-green-100', 'text-green-800', 'bg-red-100', 'text-red-800');
+            
+            switch(type) {
+                case 'loading':
+                    statusDiv.classList.add('bg-blue-100', 'text-blue-800');
+                    break;
+                case 'success':
+                    statusDiv.classList.add('bg-green-100', 'text-green-800');
+                    break;
+                case 'error':
+                    statusDiv.classList.add('bg-red-100', 'text-red-800');
+                    break;
+            }
+            
+            statusDiv.innerHTML = `<p>${message}</p>`;
+        }
+
+        function searchHospitals() {
+            const locationInput = document.getElementById('location-input').value.trim();
+            
+            if (!locationInput && !userLocation) {
+                alert('Mohon gunakan lokasi Anda atau masukkan nama kota terlebih dahulu.');
+                return;
+            }
+            
+            if (locationInput) {
+                // Simulate geocoding for city name
+                showLocationStatus(`Mencari lokasi: ${locationInput}...`, 'loading');
+                setTimeout(() => {
+                    // Simulate found location (Jakarta coordinates as example)
+                    userLocation = { lat: -6.2088, lng: 106.8456 };
+                    showLocationStatus(`Lokasi ditemukan untuk: ${locationInput}`, 'success');
+                    searchNearbyHospitals();
+                }, 1000);
+            } else {
+                searchNearbyHospitals();
+            }
+        }
+
+        function searchNearbyHospitals() {
+            if (!userLocation) return;
+            
+            const resultsDiv = document.getElementById('hospital-results');
+            const loadingDiv = document.getElementById('hospital-loading');
+            
+            resultsDiv.classList.add('hidden');
+            loadingDiv.classList.remove('hidden');
+            
+            // Simulate API call delay
+            setTimeout(() => {
+                generateSampleHospitals();
+                displayHospitalResults();
+                loadingDiv.classList.add('hidden');
+                resultsDiv.classList.remove('hidden');
+            }, 2000);
+        }
+
+        function generateSampleHospitals() {
+            const hospitalTypes = ['umum', 'jiwa', 'puskesmas', 'klinik'];
+            const hospitalNames = {
+                'umum': [
+                    'RS Umum Daerah', 'RS Siloam', 'RS Mayapada', 'RS Pondok Indah', 'RS Premier',
+                    'RS Hermina', 'RS Mitra Keluarga', 'RS Bunda', 'RS Harapan Kita', 'RS Fatmawati'
+                ],
+                'jiwa': [
+                    'RS Jiwa Dr. Soeharto Heerdjan', 'RS Jiwa Grhasia', 'RS Jiwa Prof. HB Saanin',
+                    'Klinik Psikologi Terpadu', 'RS Jiwa Daerah', 'Pusat Kesehatan Mental'
+                ],
+                'puskesmas': [
+                    'Puskesmas Kecamatan', 'Puskesmas Kelurahan', 'Puskesmas Induk',
+                    'Puskesmas Rawat Inap', 'Puskesmas 24 Jam'
+                ],
+                'klinik': [
+                    'Klinik Pratama', 'Klinik Keluarga', 'Klinik Spesialis',
+                    'Klinik Psikologi', 'Klinik Konseling', 'Klinik Terpadu'
+                ]
+            };
+
+            hospitalData = [];
+            
+            // Generate 15-20 sample hospitals
+            for (let i = 0; i < 18; i++) {
+                const type = hospitalTypes[Math.floor(Math.random() * hospitalTypes.length)];
+                const names = hospitalNames[type];
+                const name = names[Math.floor(Math.random() * names.length)] + ` ${Math.floor(Math.random() * 50) + 1}`;
+                
+                // Generate random coordinates near user location (within ~20km)
+                const latOffset = (Math.random() - 0.5) * 0.3; // ~33km range
+                const lngOffset = (Math.random() - 0.5) * 0.3;
+                
+                const hospitalLat = userLocation.lat + latOffset;
+                const hospitalLng = userLocation.lng + lngOffset;
+                
+                // Calculate distance
+                const distance = calculateDistance(userLocation.lat, userLocation.lng, hospitalLat, hospitalLng);
+                
+                hospitalData.push({
+                    id: i + 1,
+                    name: name,
+                    type: type,
+                    address: `Jl. ${['Sudirman', 'Thamrin', 'Gatot Subroto', 'Kuningan', 'Senayan', 'Menteng'][Math.floor(Math.random() * 6)]} No. ${Math.floor(Math.random() * 200) + 1}`,
+                    distance: distance,
+                    phone: `021-${Math.floor(Math.random() * 9000000) + 1000000}`,
+                    rating: (Math.random() * 2 + 3).toFixed(1), // 3.0 - 5.0
+                    services: getRandomServices(type),
+                    operatingHours: '24 Jam',
+                    lat: hospitalLat,
+                    lng: hospitalLng
+                });
+            }
+            
+            // Sort by distance
+            hospitalData.sort((a, b) => a.distance - b.distance);
+        }
+
+        function getRandomServices(type) {
+            const services = {
+                'umum': ['IGD 24 Jam', 'Rawat Inap', 'Rawat Jalan', 'Laboratorium', 'Radiologi', 'Farmasi', 'Psikiatri'],
+                'jiwa': ['Konseling', 'Terapi Psikologi', 'Psikiatri', 'Rehabilitasi Mental', 'Terapi Kelompok'],
+                'puskesmas': ['Pelayanan Umum', 'KIA', 'Imunisasi', 'Konseling', 'Rujukan'],
+                'klinik': ['Konsultasi', 'Terapi', 'Konseling Keluarga', 'Tes Psikologi']
+            };
+            
+            const availableServices = services[type] || services['umum'];
+            const numServices = Math.floor(Math.random() * 4) + 3; // 3-6 services
+            
+            return availableServices
+                .sort(() => 0.5 - Math.random())
+                .slice(0, numServices);
+        }
+
+        function calculateDistance(lat1, lng1, lat2, lng2) {
+            const R = 6371; // Earth's radius in kilometers
+            const dLat = (lat2 - lat1) * Math.PI / 180;
+            const dLng = (lng2 - lng1) * Math.PI / 180;
+            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+                    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+                    Math.sin(dLng/2) * Math.sin(dLng/2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+            return R * c;
+        }
+
+        function displayHospitalResults() {
+            const resultsDiv = document.getElementById('hospital-results');
+            const selectedType = document.getElementById('hospital-type').value;
+            const maxDistance = parseInt(document.getElementById('hospital-distance').value);
+            
+            // Filter hospitals
+            let filteredHospitals = hospitalData.filter(hospital => {
+                const typeMatch = selectedType === 'all' || hospital.type === selectedType;
+                const distanceMatch = hospital.distance <= maxDistance;
+                return typeMatch && distanceMatch;
+            });
+            
+            if (filteredHospitals.length === 0) {
+                resultsDiv.innerHTML = `
+                    <div class="text-center py-8 text-gray-500">
+                        <div class="text-4xl mb-4">🏥</div>
+                        <p>Tidak ada rumah sakit yang ditemukan dengan kriteria tersebut.</p>
+                        <p class="text-sm mt-2">Coba perluas jarak pencarian atau ubah jenis rumah sakit.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            resultsDiv.innerHTML = filteredHospitals.map(hospital => `
+                <div class="border border-gray-200 rounded-lg p-4 hover:shadow-md transition">
+                    <div class="flex flex-col md:flex-row md:items-start md:justify-between">
+                        <div class="flex-1">
+                            <div class="flex items-start justify-between mb-2">
+                                <h4 class="font-semibold text-lg text-blue-600">${hospital.name}</h4>
+                                <span class="ml-2 px-2 py-1 text-xs font-medium rounded-full ${getHospitalTypeColor(hospital.type)}">${getHospitalTypeName(hospital.type)}</span>
+                            </div>
+                            
+                            <div class="space-y-2 text-sm text-gray-600">
+                                <div class="flex items-center space-x-2">
+                                    <span>📍</span>
+                                    <span>${hospital.address}</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span>📞</span>
+                                    <span>${hospital.phone}</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span>🕒</span>
+                                    <span>${hospital.operatingHours}</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span>📏</span>
+                                    <span>${hospital.distance.toFixed(1)} km dari lokasi Anda</span>
+                                </div>
+                                <div class="flex items-center space-x-2">
+                                    <span>⭐</span>
+                                    <span>Rating: ${hospital.rating}/5.0</span>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-3">
+                                <p class="text-sm font-medium text-gray-700 mb-1">Layanan:</p>
+                                <div class="flex flex-wrap gap-1">
+                                    ${hospital.services.map(service => 
+                                        `<span class="px-2 py-1 text-xs bg-gray-100 text-gray-700 rounded">${service}</span>`
+                                    ).join('')}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-4 md:mt-0 md:ml-4 flex flex-col space-y-2">
+                            <button onclick="openMaps(${hospital.lat}, ${hospital.lng}, '${hospital.name}')" class="px-4 py-2 bg-blue-600 text-white text-sm rounded-lg hover:bg-blue-700 transition">
+                                📍 Buka Maps
+                            </button>
+                            <button onclick="callHospital('${hospital.phone}')" class="px-4 py-2 bg-green-600 text-white text-sm rounded-lg hover:bg-green-700 transition">
+                                📞 Telepon
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function getHospitalTypeColor(type) {
+            const colors = {
+                'umum': 'bg-blue-100 text-blue-800',
+                'jiwa': 'bg-purple-100 text-purple-800',
+                'puskesmas': 'bg-green-100 text-green-800',
+                'klinik': 'bg-orange-100 text-orange-800'
+            };
+            return colors[type] || 'bg-gray-100 text-gray-800';
+        }
+
+        function getHospitalTypeName(type) {
+            const names = {
+                'umum': 'RS Umum',
+                'jiwa': 'RS Jiwa',
+                'puskesmas': 'Puskesmas',
+                'klinik': 'Klinik'
+            };
+            return names[type] || type;
+        }
+
+        function openMaps(lat, lng, name) {
+            const url = `https://www.google.com/maps/search/?api=1&query=${lat},${lng}&query_place_id=${encodeURIComponent(name)}`;
+            window.open(url, '_blank');
+        }
+
+        function callHospital(phone) {
+            if (confirm(`Apakah Anda ingin menelepon ${phone}?`)) {
+                window.location.href = `tel:${phone}`;
+            }
+        }
+
+        // Fullscreen functionality
+        function toggleFullscreen() {
+            if (!document.fullscreenElement) {
+                // Enter fullscreen
+                document.documentElement.requestFullscreen().then(() => {
+                    updateFullscreenUI(true);
+                }).catch(err => {
+                    console.log('Error attempting to enable fullscreen:', err);
+                });
+            } else {
+                // Exit fullscreen
+                document.exitFullscreen().then(() => {
+                    updateFullscreenUI(false);
+                }).catch(err => {
+                    console.log('Error attempting to exit fullscreen:', err);
+                });
+            }
+        }
+
+        function updateFullscreenUI(isFullscreen) {
+            const fullscreenIcon = document.getElementById('fullscreen-icon');
+            const exitFullscreenIcon = document.getElementById('exit-fullscreen-icon');
+            const mobileText = document.getElementById('mobile-fullscreen-text');
+            
+            if (isFullscreen) {
+                fullscreenIcon.classList.add('hidden');
+                exitFullscreenIcon.classList.remove('hidden');
+                mobileText.textContent = '🔲 Exit Fullscreen';
+            } else {
+                fullscreenIcon.classList.remove('hidden');
+                exitFullscreenIcon.classList.add('hidden');
+                mobileText.textContent = '🔳 Fullscreen';
+            }
+        }
+
+        // Listen for fullscreen changes (including F11 key or browser controls)
+        document.addEventListener('fullscreenchange', function() {
+            updateFullscreenUI(!!document.fullscreenElement);
+        });
+
+        // Add event listeners for hospital filters
+        document.addEventListener('DOMContentLoaded', function() {
+            // Existing initialization code...
+            
+            // Add hospital filter listeners
+            document.getElementById('hospital-type').addEventListener('change', function() {
+                if (hospitalData.length > 0) {
+                    displayHospitalResults();
+                }
+            });
+            
+            document.getElementById('hospital-distance').addEventListener('change', function() {
+                if (hospitalData.length > 0) {
+                    displayHospitalResults();
+                }
+            });
+        });
+    </script>
+<script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9892a02973c2445e',t:'MTc1OTU1OTM3NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
